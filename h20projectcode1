@@ -1,0 +1,48 @@
+// --- PIN DEFINITIONS ---
+const int pumpPin = 22;     // For the relay's 'IN' pin (Pump Control)
+const int mq2Pin = 4;       // ADC pin D4 for the Gas Sensor
+const int SAFETY_THRESHOLD = 650; // Value must be above the 300 baseline
+
+/*
+ * ⚠️ --- CRITICAL WARNING --- ⚠️
+ * Pin D4 (GPIO 4) is part of ADC2, which is SHARED with the
+ * Wi-Fi radio. This code will work, but the moment you add
+ * Wi-Fi, analogRead(mq2Pin) will STOP WORKING.
+ * You must move this to an ADC1 pin (like 34, 35, 32, 33) later.
+ */
+
+void setup() {
+  // Start the serial monitor at 9600 baud
+  Serial.begin(9600); 
+  Serial.println("H2@Home Safety Test Starting...");
+
+  pinMode(pumpPin, OUTPUT);
+  digitalWrite(pumpPin, LOW); // Pump starts OFF
+}
+
+void loop() {
+  int gasValue = analogRead(mq2Pin);
+  Serial.print("Gas Sensor Value: ");
+  Serial.println(gasValue);
+
+  // --- SAFETY CHECK LOGIC ---
+  // If the reading is above the threshold, shut down and wait.
+  if (gasValue > SAFETY_THRESHOLD) {
+    Serial.println("!!! GAS LEAK DETECTED (Value > 900) !!!");
+    Serial.println("Pump Shutting Down.");
+    digitalWrite(pumpPin, LOW); // Shut off the pump immediately
+    delay(5000);                // Wait 5 seconds before checking again
+  } 
+  
+  // --- NORMAL OPERATION (RE-INTEGRATED OLD PUMP CODE) ---
+  else {
+    Serial.println("Status: Safe. Running Pump Test Cycle.");
+    
+    // START: Original 3-second ON cycle 
+    digitalWrite(pumpPin, HIGH);  // Pump ON
+    delay(3000);                  
+    digitalWrite(pumpPin, LOW);   // Pump OFF
+    delay(3000); 
+    // END: Original 3-second OFF cycle
+  }
+}
