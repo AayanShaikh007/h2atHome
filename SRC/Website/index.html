@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2@HOME Control Panel</title>
+    <link rel="icon" type="image/png" href="favicon.png"> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- GLOBAL VARIABLES (Provided by Canvas Environment) ---
+        // NOTE: These variables must be defined globally before the script runs if outside this environment.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gec-h2-at-home-2025'; 
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
+
+        // --- FIREBASE AND HARDWARE PATH SETUP ---
+        const PROTOTYPE_USER_ID = "esp32_prototype_device_1";
+        const DEVICE_PATH = `artifacts/${appId}/users/${PROTOTYPE_USER_ID}/h2_station_data/status`;
+        const MAINTENANCE_PATH = `artifacts/${appId}/users/${PROTOTYPE_USER_ID}/h2_station_data/maintenance`;
+        const H2_COLOR = '#007FFF'; 
+
+        let db;
+        let auth;
+        let currentStatus = null;
+
+        // --- AUTHENTICATION & INITIALIZATION ---
+        const initFirebase = async () => {
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is missing.");
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in logic
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                console.log("Firebase initialized and authenticated.");
+                startDataListeners(db);
+
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                document.getElementById('status-message').textContent = 'Error: Device offline or API failure.';
+            }
+        };
+
+        // --- REAL-TIME DATA LISTENERS ---
+        const startDataListeners = (dbInstance) => {
+            // 1. Status Data Listener
+            onSnapshot(doc(dbInstance, DEVICE_PATH), (docSnap) => {
+                if (docSnap.exists()) {
+                    currentStatus = docSnap.data();
+                    updateDashboard(currentStatus);
+                } else {
+                    document.getElementById('status-message').textContent = 'Device offline or data stream failed.';
+                }
+            }, (error) => {
+                console.error("Status Listener Error:", error);
+            });
+
+            // 2. Maintenance Data Listener
+            onSnapshot(doc(dbInstance, MAINTENANCE_PATH), (docSnap) => {
+                if (docSnap.exists()) {
+                    updateMaintenance(docSnap.data());
+                }
+            });
+        };
+
+        // --- COMMAND FUNCTION ---
+        window.toggleSystemMode = async () => {
+            if (!db || !currentStatus) return;
+
+            const newMode = currentStatus.systemMode === 0 ? 1 : 0;
+            const button = document.getElementById('control-button');
+            button.disabled = true;
+            button.textContent = 'Sending Command...';
+
+            try {
+                await setDoc(doc(db, DEVICE_PATH), { systemMode: newMode }, { merge: true });
+                console.log(`Command sent: System Mode -> ${newMode}`);
+            } catch (e) {
+                console.error("Error toggling system mode: ", e);
+            } finally {
+                // UI will be updated automatically via the onSnapshot listener
+                button.disabled = false;
+                button.textContent = newMode === 0 ? "Activate MANUAL FILL" : "Switch to AUTO-SCHEDULE";
+            }
+        };
+
+        // --- UI UPDATE FUNCTIONS ---
+        const updateDashboard = (data) => {
+            const h2LevelPercent = (data.h2Level / data.maxCapacity * 100).toFixed(1);
+            const costStatus = data.currentRate === 0 ? "OFF-PEAK (CHEAP)" : "MID/ON-PEAK (EXPENSIVE)";
+            const costColor = data.currentRate === 0 ? "text-green-400" : "text-red-400";
+            const modeText = data.systemMode === 1 ? "MANUAL OVERRIDE" : "AUTO-SCHEDULED";
+            const modeColor = data.systemMode === 1 ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700";
+            const generatingText = data.isGenerating ? "GENERATING H₂" : "STANDBY";
+            const generatingColor = data.isGenerating ? "text-green-500" : "text-gray-500";
+            
+            // 1. Status Panel
+            document.getElementById('op-status').textContent = generatingText;
+            document.getElementById('op-status').className = `text-3xl font-bold mt-1 ${generatingColor}`;
+            document.getElementById('mode-status').textContent = modeText;
+            document.getElementById('cost-status').textContent = costStatus;
+            document.getElementById('cost-status').className = `text-3xl font-bold mt-1 ${costColor}`;
+
+            // 2. Level Panel
+            document.getElementById('h2-percent').textContent = `${h2LevelPercent}%`;
+            document.getElementById('h2-mass').textContent = `${data.h2Level.toFixed(2)} kg / ${data.maxCapacity.toFixed(1)} kg`;
+            document.getElementById('progress-bar').style.width = `${h2LevelPercent}%`;
+            
+            // 3. Control Button
+            const button = document.getElementById('control-button');
+            button.textContent = data.systemMode === 0 ? "Activate MANUAL FILL" : "Switch to AUTO-SCHEDULE";
+            button.className = `w-full py-4 text-xl font-bold rounded-lg transition duration-150 ${modeColor}`;
+            
+            document.getElementById('status-message').textContent = 'Live Data Stream Active';
+        };
+
+        const updateMaintenance = (data) => {
+            const naohColor = data.naohPercent > 20 ? 'text-green-400' : 'text-red-400';
+            const electrodeColor = data.electrodeHealth > 70 ? 'text-green-400' : 'text-yellow-400';
+            
+            document.getElementById('naoh-status').innerHTML = `<p class="text-gray-300">NaOH Reservoir:</p><p class="font-semibold ${naohColor}">${data.naohPercent}%</p>`;
+            document.getElementById('filter-status').innerHTML = `<p class="text-gray-300">RO Filter Life:</p><p class="font-semibold text-green-400">${data.filterMonths} Months</p>`;
+            document.getElementById('electrode-status').innerHTML = `<p class="text-gray-300">Electrode Health:</p><p class="font-semibold ${electrodeColor}">${data.electrodeHealth}%</p>`;
+        };
+
+        // Initialize on load
+        window.onload = initFirebase;
+    </script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-white mb-2">H2@HOME</h1>
+            <p class="text-xl text-blue-400">Smart Residential Refueling Control Panel</p>
+            <p id="status-message" class="text-sm text-yellow-500 mt-2">Connecting to H2@HOME Device...</p>
+        </header>
+
+        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl mb-8 border border-blue-700">
+            <h2 class="text-2xl font-bold mb-4 border-b border-blue-600 pb-2">System Status</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                
+                <div class="p-4 rounded-lg border-2 border-gray-700">
+                    <p class="text-sm text-gray-400">Current Operation</p>
+                    <p id="op-status" class="text-3xl font-bold mt-1 text-gray-500">STANDBY</p>
+                </div>
+                
+                <div class="p-4 rounded-lg border-2 border-gray-700">
+                    <p class="text-sm text-gray-400">Control Mode</p>
+                    <p id="mode-status" class="text-3xl font-bold text-yellow-400 mt-1">AUTO-SCHEDULED</p>
+                </div>
+
+                <div class="p-4 rounded-lg border-2 border-gray-700">
+                    <p class="text-sm text-gray-400">Electricity Rate</p>
+                    <p id="cost-status" class="text-3xl font-bold mt-1 text-red-400">ON-PEAK</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl mb-8 border border-blue-700">
+            <h2 class="text-2xl font-bold mb-4 border-b border-blue-600 pb-2">Hydrogen Tank Level</h2>
+            
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="flex flex-col items-center justify-center w-full md:w-1/3">
+                    <span class="text-6xl font-extrabold" style="color: #007FFF;">
+                        H₂ 
+                    </span>
+                    <p class="text-sm text-gray-400 mt-1">H₂ Fuel</p>
+                    <p id="h2-percent" class="text-5xl font-extrabold text-blue-400 mt-2">0.0%</p>
+                    <p id="h2-mass" class="text-lg text-gray-400 mt-1">0.00 kg / 6.3 kg</p>
+                </div>
+
+                <div class="w-full md:w-2/3">
+                    <div class="h-6 bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                            id="progress-bar"
+                            class="h-full rounded-full transition-all duration-500" 
+                            style="width: 0%; background-color: #007FFF;"
+                        ></div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Current fill level required by Hyundai Nexo.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-700">
+                <h2 class="text-2xl font-bold mb-4 border-b border-blue-600 pb-2">System Control</h2>
+                <p class="text-sm text-gray-400 mb-4">Toggle between automated cost-saving mode and immediate manual fill.</p>
+                <button
+                    id="control-button"
+                    onclick="toggleSystemMode()"
+                    class="w-full py-4 text-xl font-bold rounded-lg transition duration-150 bg-blue-600 hover:bg-blue-700"
+                >
+                    Activate MANUAL FILL
+                </button>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-700">
+                <h2 class="text-2xl font-bold mb-4 border-b border-blue-600 pb-2">Longevity & Maintenance</h2>
+                <div class="space-y-3">
+                    <div id="electrode-status" class="flex justify-between items-center text-lg">
+                        <p class="text-gray-300">Electrode Health:</p>
+                        <p class="font-semibold text-gray-500">Initializing...</p>
+                    </div>
+                    <div id="naoh-status" class="flex justify-between items-center text-lg">
+                        <p class="text-gray-300">NaOH Reservoir:</p>
+                        <p class="font-semibold text-gray-500">Initializing...</p>
+                    </div>
+                    <div id="filter-status" class="flex justify-between items-center text-lg">
+                        <p class="text-gray-300">RO Filter Life:</p>
+                        <p class="font-semibold text-gray-500">Initializing...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
