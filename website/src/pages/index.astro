@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="H2At Home">
+	<div class="py-12">
+		<div class="text-center">
+			<h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+				Welcome to H2At Home
+			</h1>
+			<p class="mt-4 text-lg text-gray-600">
+				Real-time hydrogen production monitoring and control system
+			</p>
+			<div class="mt-8">
+				<a href="/dashboard" class="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+					View Dashboard
+				</a>
+			</div>
+		</div>
+
+		<div class="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3">
+			<div class="text-center">
+				<div class="flex justify-center">
+					<div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600">
+						<span class="text-white text-xl">📊</span>
+					</div>
+				</div>
+				<h3 class="mt-4 text-lg font-medium text-gray-900">Real-Time Monitoring</h3>
+				<p class="mt-2 text-gray-600">Track temperature, voltage, current, and power generation</p>
+			</div>
+
+			<div class="text-center">
+				<div class="flex justify-center">
+					<div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600">
+						<span class="text-white text-xl">⚡</span>
+					</div>
+				</div>
+				<h3 class="mt-4 text-lg font-medium text-gray-900">Energy Efficient</h3>
+				<p class="mt-2 text-gray-600">Optimize hydrogen production with live performance metrics</p>
+			</div>
+
+			<div class="text-center">
+				<div class="flex justify-center">
+					<div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600">
+						<span class="text-white text-xl">🔒</span>
+					</div>
+				</div>
+				<h3 class="mt-4 text-lg font-medium text-gray-900">System Safety</h3>
+				<p class="mt-2 text-gray-600">Real-time system status monitoring with automatic alerts</p>
+			</div>
+		</div>
+	</div>
+</Layout>
