@@ -1,4 +1,4 @@
-H2atHome is a project we made for Guelph Engineering Competition. 
+H2atHome is a project we made for Ontario Engineering Competition after winning the Guelph Engineering Competition. 
 
 
 # Dashboard 
