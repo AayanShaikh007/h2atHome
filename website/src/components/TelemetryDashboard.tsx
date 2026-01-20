@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTelemetry } from '../hooks/useTelemetry';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface TelemetryDashboardProps {
   apiUrl: string;
@@ -34,6 +36,36 @@ const TelemetryCard: React.FC<{ label: string; value: string | number; unit?: st
 export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, useMockData = false }) => {
   const [isUsingMockData, setIsUsingMockData] = useState(useMockData);
   const { data, loading, error, refetch } = useTelemetry(apiUrl, 1500, isUsingMockData);
+  const prevHydrogenRateRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (data) {
+      const currentRate = data.hydrogen_rate;
+      const prevRate = prevHydrogenRateRef.current;
+
+      if (prevRate === 0 && currentRate > 0) {
+        toast.success('🚀 Production Started! Hydrogen generation is active.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else if (prevRate > 0 && currentRate === 0) {
+        toast.info('🛑 Production Ended. Hydrogen generation has stopped.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+
+      prevHydrogenRateRef.current = currentRate;
+    }
+  }, [data]);
 
   if (loading && !data) {
     return (
@@ -69,6 +101,7 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
 
   return (
     <div>
+      <ToastContainer />
       {/* Toggle Switch */}
       <div className="mb-6 flex items-center justify-between bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
         <div className="flex items-center gap-3">
@@ -77,7 +110,7 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
             {isUsingMockData ? '📊 Simulated Data' : '🔌 Live Data'}
           </span>
         </div>
-        
+
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"

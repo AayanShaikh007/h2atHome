@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { TelemetryDashboard } from '../components/TelemetryDashboard';
+import { ProtectedDashboard } from '../components/ProtectedDashboard';
 
 // Configure your Pico IP and port here
 const PICO_IP = import.meta.env.PUBLIC_PICO_IP || 'localhost';
@@ -23,7 +23,7 @@ const USE_MOCK_DATA = import.meta.env.PUBLIC_USE_MOCK_DATA === 'true' || true; /
 			)}
 		</div>
 		
-		<TelemetryDashboard apiUrl={API_URL} useMockData={USE_MOCK_DATA} client:load />
+		<ProtectedDashboard apiUrl={API_URL} useMockData={USE_MOCK_DATA} client:only="react" />
 
 		<div class="mt-8 rounded-lg bg-blue-50 border border-blue-200 p-4">
 			<p class="text-sm text-blue-900">
