@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ProtectedSafety } from '../components/ProtectedSafety';
+
+// Configure your Pico IP and port here
+const PICO_IP = import.meta.env.PUBLIC_PICO_IP || 'localhost';
+const PICO_PORT = import.meta.env.PUBLIC_PICO_PORT || '8080';
+const API_URL = `http://${PICO_IP}:${PICO_PORT}/api/telemetry`;
+const USE_MOCK_DATA = import.meta.env.PUBLIC_USE_MOCK_DATA === 'true' || true;
+---
+
+<Layout title="System Safety - H2At Home">
+    <div class="py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">System Health & Safety</h1>
+            <p class="text-gray-600 dark:text-slate-400">Real-time safety monitoring and emergency controls</p>
+        </div>
+        
+        <ProtectedSafety apiUrl={API_URL} useMockData={USE_MOCK_DATA} client:only="react" />
+    </div>
+</Layout>

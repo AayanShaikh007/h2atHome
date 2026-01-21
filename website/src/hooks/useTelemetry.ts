@@ -9,6 +9,10 @@ interface TelemetryData {
   hydrogen_rate: number;
   system_ok: boolean;
   timestamp_ms: number;
+  gas_ppm: number;
+  pressure_bar: number;
+  vent_status: 'Purging' | 'Standby' | 'Malfunction';
+  is_system_active: boolean;
 }
 
 interface UseTelemetryReturn {
@@ -26,22 +30,22 @@ export function useTelemetry(apiUrl: string, refreshInterval: number = 10000, us
   const fetchTelemetry = useCallback(async () => {
     try {
       setError(null);
-      
+
       if (useMockData) {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 300));
         setData(generateMockTelemetry());
       } else {
         const response = await fetch(apiUrl);
-        
+
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
         }
-        
+
         const jsonData = await response.json();
         setData(jsonData);
       }
-      
+
       setLoading(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch telemetry';
@@ -53,7 +57,7 @@ export function useTelemetry(apiUrl: string, refreshInterval: number = 10000, us
   useEffect(() => {
     fetchTelemetry();
     const interval = setInterval(fetchTelemetry, refreshInterval);
-    
+
     return () => clearInterval(interval);
   }, [fetchTelemetry, refreshInterval]);
 

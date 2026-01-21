@@ -44,13 +44,13 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-start justify-center bg-gray-50 px-4 pt-20 sm:px-6 lg:px-8">
+        <div className="flex min-h-screen items-start justify-center bg-gray-50 dark:bg-slate-900 px-4 pt-20 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="w-full max-w-md space-y-8">
                 <div>
-                    <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+                    <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                         {isSignUp ? 'Create an Account' : 'Sign in to Dashboard'}
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-400">
                         H2@HOME Telemetry System
                     </p>
                 </div>
@@ -66,7 +66,7 @@ export const Login: React.FC = () => {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
+                                className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-slate-800 sm:text-sm sm:leading-6 px-3"
                                 placeholder="Email address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -82,7 +82,7 @@ export const Login: React.FC = () => {
                                 type="password"
                                 autoComplete="current-password"
                                 required
-                                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
+                                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-slate-800 sm:text-sm sm:leading-6 px-3"
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -91,11 +91,11 @@ export const Login: React.FC = () => {
                     </div>
 
                     {error && (
-                        <div className="rounded-md bg-red-50 p-4">
+                        <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
                             <div className="flex">
                                 <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-red-800">Error</h3>
-                                    <div className="mt-2 text-sm text-red-700">
+                                    <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+                                    <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                                         <p>{error}</p>
                                     </div>
                                 </div>
@@ -104,11 +104,11 @@ export const Login: React.FC = () => {
                     )}
 
                     {message && (
-                        <div className="rounded-md bg-green-50 p-4">
+                        <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4">
                             <div className="flex">
                                 <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-green-800">Success</h3>
-                                    <div className="mt-2 text-sm text-green-700">
+                                    <h3 className="text-sm font-medium text-green-800 dark:text-green-200">Success</h3>
+                                    <div className="mt-2 text-sm text-green-700 dark:text-green-300">
                                         <p>{message}</p>
                                     </div>
                                 </div>
@@ -148,7 +148,7 @@ export const Login: React.FC = () => {
                             setError(null);
                             setMessage(null);
                         }}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                     >
                         {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
                     </button>

@@ -18,13 +18,14 @@ const TelemetryCard: React.FC<{ label: string; value: string | number; unit?: st
   unit,
   status,
 }) => {
-  const bgColor = status === false ? 'bg-red-50' : 'bg-white';
-  const borderColor = status === false ? 'border-red-200' : 'border-gray-200';
-  const textColor = status === false ? 'text-red-900' : 'text-gray-900';
+  const bgColor = status === false ? 'bg-red-50 dark:bg-red-900/20' : 'bg-white dark:bg-slate-800';
+  const borderColor = status === false ? 'border-red-200 dark:border-red-800' : 'border-gray-200 dark:border-slate-700';
+  const textColor = status === false ? 'text-red-900 dark:text-red-200' : 'text-gray-900 dark:text-white';
+  const labelColor = 'text-gray-600 dark:text-slate-400';
 
   return (
-    <div className={`${bgColor} rounded-lg border ${borderColor} p-4 shadow-sm`}>
-      <p className="text-sm font-medium text-gray-600">{label}</p>
+    <div className={`${bgColor} rounded-lg border ${borderColor} p-4 shadow-sm transition-colors duration-300`}>
+      <p className={`text-sm font-medium ${labelColor}`}>{label}</p>
       <p className={`mt-2 text-2xl font-bold ${textColor}`}>
         {value}
         {unit && <span className="text-lg ml-1">{unit}</span>}
@@ -36,12 +37,15 @@ const TelemetryCard: React.FC<{ label: string; value: string | number; unit?: st
 export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, useMockData = false }) => {
   const [isUsingMockData, setIsUsingMockData] = useState(useMockData);
   const { data, loading, error, refetch } = useTelemetry(apiUrl, 1500, isUsingMockData);
+
   const prevHydrogenRateRef = useRef<number>(0);
 
   useEffect(() => {
     if (data) {
       const currentRate = data.hydrogen_rate;
       const prevRate = prevHydrogenRateRef.current;
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const toastTheme = isDarkMode ? "dark" : "colored";
 
       if (prevRate === 0 && currentRate > 0) {
         toast.success('🚀 Production Started! Hydrogen generation is active.', {
@@ -51,6 +55,7 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
+          theme: toastTheme
         });
       } else if (prevRate > 0 && currentRate === 0) {
         toast.info('🛑 Production Ended. Hydrogen generation has stopped.', {
@@ -60,6 +65,7 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
+          theme: toastTheme
         });
       }
 
@@ -103,9 +109,9 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
     <div>
       <ToastContainer />
       {/* Toggle Switch */}
-      <div className="mb-6 flex items-center justify-between bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+      <div className="mb-6 flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 shadow-sm transition-colors duration-300">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-700">Data Source:</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Data Source:</span>
           <span className={`text-sm font-semibold ${isUsingMockData ? 'text-yellow-600' : 'text-green-600'}`}>
             {isUsingMockData ? '📊 Simulated Data' : '🔌 Live Data'}
           </span>
@@ -119,7 +125,7 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
             className="sr-only peer"
           />
           <div className="w-11 h-6 bg-green-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
-          <span className="ml-3 text-sm font-medium text-gray-700">Use Mock Data</span>
+          <span className="ml-3 text-sm font-medium text-gray-700 dark:text-slate-300">Use Mock Data</span>
         </label>
       </div>
 
@@ -162,9 +168,9 @@ export const TelemetryDashboard: React.FC<TelemetryDashboardProps> = ({ apiUrl, 
         />
       </div>
 
-      <div className="mt-6 flex items-center justify-between rounded-lg bg-gray-50 p-4">
-        <p className="text-sm text-gray-600">
-          Last updated: <span className="font-mono font-semibold">{formatTimestamp(data.timestamp_ms)}</span>
+      <div className="mt-6 flex items-center justify-between rounded-lg bg-gray-50 dark:bg-slate-800 p-4 transition-colors duration-300">
+        <p className="text-sm text-gray-600 dark:text-slate-400">
+          Last updated: <span className="font-mono font-semibold text-gray-900 dark:text-white">{formatTimestamp(data.timestamp_ms)}</span>
         </p>
         <button
           onClick={refetch}

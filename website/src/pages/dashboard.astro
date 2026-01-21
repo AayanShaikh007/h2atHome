@@ -13,11 +13,11 @@ const USE_MOCK_DATA = import.meta.env.PUBLIC_USE_MOCK_DATA === 'true' || true; /
 	<div class="py-8">
 		<div class="flex justify-between items-start mb-8">
 			<div>
-				<h1 class="text-3xl font-bold text-gray-900 mb-2">System Dashboard</h1>
-				<p class="text-gray-600">Real-time telemetry from H2At Home system</p>
+				<h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">System Dashboard</h1>
+				<p class="text-gray-600 dark:text-slate-400">Real-time telemetry from H2At Home system</p>
 			</div>
 			{USE_MOCK_DATA && (
-				<div class="px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-sm font-medium text-yellow-800">
+				<div class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-full text-sm font-medium text-yellow-800 dark:text-yellow-200">
 					📊 Mock Data Mode
 				</div>
 			)}
@@ -25,20 +25,20 @@ const USE_MOCK_DATA = import.meta.env.PUBLIC_USE_MOCK_DATA === 'true' || true; /
 		
 		<ProtectedDashboard apiUrl={API_URL} useMockData={USE_MOCK_DATA} client:only="react" />
 
-		<div class="mt-8 rounded-lg bg-blue-50 border border-blue-200 p-4">
-			<p class="text-sm text-blue-900">
+		<div class="mt-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+			<p class="text-sm text-blue-900 dark:text-blue-200">
 				<strong>Mode:</strong> {USE_MOCK_DATA ? '📊 Simulated data' : '🔌 Live API endpoint'}
 			</p>
 			{!USE_MOCK_DATA && (
-				<p class="text-sm text-blue-900 mt-1">
-					<strong>API Endpoint:</strong> <code class="font-mono bg-white px-2 py-1 rounded">{API_URL}</code>
+				<p class="text-sm text-blue-900 dark:text-blue-200 mt-1">
+					<strong>API Endpoint:</strong> <code class="font-mono bg-white dark:bg-slate-800 px-2 py-1 rounded">{API_URL}</code>
 				</p>
 			)}
-			<p class="text-sm text-blue-900 mt-2">
+			<p class="text-sm text-blue-900 dark:text-blue-200 mt-2">
 				Data updates automatically every 1.5 seconds.
 			</p>
-			<p class="text-sm text-blue-900 mt-2">
-				<strong>To switch to live data:</strong> Set <code class="font-mono bg-white px-2 py-1 rounded">PUBLIC_USE_MOCK_DATA=false</code> in <code class="font-mono">.env</code>
+			<p class="text-sm text-blue-900 dark:text-blue-200 mt-2">
+				<strong>To switch to live data:</strong> Set <code class="font-mono bg-white dark:bg-slate-800 px-2 py-1 rounded">PUBLIC_USE_MOCK_DATA=false</code> in <code class="font-mono">.env</code>
 			</p>
 		</div>
 	</div>

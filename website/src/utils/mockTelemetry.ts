@@ -6,6 +6,10 @@ interface TelemetryData {
   hydrogen_rate: number;
   system_ok: boolean;
   timestamp_ms: number;
+  gas_ppm: number;
+  pressure_bar: number;
+  vent_status: 'Purging' | 'Standby' | 'Malfunction';
+  is_system_active: boolean;
 }
 
 export function generateMockTelemetry(): TelemetryData {
@@ -16,6 +20,19 @@ export function generateMockTelemetry(): TelemetryData {
   const basePower = baseVoltage * baseCurrent; // Realistic power calculation
   const baseHydrogenRate = 0.82 + (Math.random() - 0.5) * 0.1; // 0.77-0.87 L/min
 
+  // Safety metrics
+  let gasPpm = 350 + (Math.random() - 0.5) * 50; // Normal: 325-375 PPM
+
+  // 0.5% chance of Minor Leak
+  if (Math.random() < 0.005) {
+    gasPpm = 800 + (Math.random() * 100); // 800-900 PPM
+  }
+
+  const pressureBar = 350 + (Math.random() - 0.5) * 10; // 345-355 bar
+
+  const ventStatuses: ('Purging' | 'Standby' | 'Malfunction')[] = ['Standby', 'Standby', 'Standby', 'Purging'];
+  const ventStatus = ventStatuses[Math.floor(Math.random() * ventStatuses.length)];
+
   return {
     temperature_c: Math.round(baseTemp * 100) / 100,
     voltage_v: Math.round(baseVoltage * 100) / 100,
@@ -24,5 +41,9 @@ export function generateMockTelemetry(): TelemetryData {
     hydrogen_rate: Math.round(baseHydrogenRate * 10000) / 10000,
     system_ok: Math.random() > 0.05, // 95% OK, 5% error for demo
     timestamp_ms: Date.now(),
+    gas_ppm: Math.round(gasPpm),
+    pressure_bar: Math.round(pressureBar),
+    vent_status: ventStatus,
+    is_system_active: true, // Default to true for mock
   };
 }
